@@ -1,0 +1,86 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Item {
+    String name;
+    double price;
+    int quantity;
+
+    Item(String name, double price, int quantity) {
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
+    }
+
+    double getTotalCost() {
+        return price * quantity;
+    }
+}
+
+public class ReceiptCalculator {
+    static final double TAX_RATE = 0.07;                // 7% tax
+    static final double DISCOUNT_RATE = 0.1;            // 10% discount
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        ArrayList<Item> items = new ArrayList<>();
+        DecimalFormat df = new DecimalFormat("#.##");
+
+        // Input for items
+        while (true) {
+            System.out.print("Enter item name (or type 'done' to finish): ");
+            String name = scanner.nextLine();
+            if (name.equalsIgnoreCase("done")) break;
+
+            System.out.print("Enter price of " + name + ": ");
+            double price = scanner.nextDouble();
+
+            System.out.print("Enter quantity of " + name + ": ");
+            int quantity = scanner.nextInt();
+            scanner.nextLine();                          // Consume the newline character
+
+            items.add(new Item(name, price, quantity));
+        }
+
+        // Calculate subtotal
+        double subtotal = 0;
+        for (Item item : items) {
+            subtotal += item.getTotalCost();
+        }
+
+        // Calculate tax and discount
+        double tax = subtotal * TAX_RATE;
+        double discount = subtotal * DISCOUNT_RATE;
+        double finalTotal = subtotal + tax - discount;
+
+        // Display the receipt
+        System.out.println("\n==== Receipt ====");
+        for (Item item : items) {
+            System.out.println(item.quantity + " x " + item.name + " @ $" + df.format(item.price) + " = $" + df.format(item.getTotalCost()));
+        }
+        System.out.println("Subtotal: $" + df.format(subtotal));
+        System.out.println("Tax (7%): $" + df.format(tax));
+        System.out.println("Discount (10%): -$" + df.format(discount));
+        System.out.println("Total: $" + df.format(finalTotal));
+
+        // Save to a text file
+        try (FileWriter writer = new FileWriter("receipt.txt")) {
+            writer.write("==== Receipt ====\n");
+            for (Item item : items) {
+                writer.write(item.quantity + " x " + item.name + " @ $" + df.format(item.price) + " = $" + df.format(item.getTotalCost()) + "\n");
+            }
+            writer.write("Subtotal: $" + df.format(subtotal) + "\n");
+            writer.write("Tax (7%): $" + df.format(tax) + "\n");
+            writer.write("Discount (10%): -$" + df.format(discount) + "\n");
+            writer.write("Total: $" + df.format(finalTotal) + "\n");
+            System.out.println("Receipt saved to receipt.txt");
+        } catch (IOException e) {
+            System.out.println("Error saving receipt: " + e.getMessage());
+        }
+
+        scanner.close();
+    }
+}
